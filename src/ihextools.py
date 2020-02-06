@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Intel Hex parsing and handling library
 # Copyright 2014 Jeff Ciesielski <jeff@autosportlabs.com>
@@ -15,7 +15,7 @@ ROWTYPE_START_LIN_ADDR = 0x05
 def chunks(l, n):
     """ Yield successive n-sized chunks from l.
     """
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i+n]
 
 class iHexRow(object):
@@ -134,17 +134,18 @@ class iHex(object):
         self._addr_groups = []
 
     def load_ihex(self, path):
-        lines = open(path, 'rb').readlines()
+        with open(path, 'r') as fd:
+            lines = fd.readlines()
 
-        #Walk through each line
-        for l in lines:
-            #Grab the row and convert it to an iHexRow
-            row = iHexRow().from_str(l)
-            if row.record_type == ROWTYPE_EXT_LIN_ADDR:
-                ag = iHexAddrGroup(row)
-                self._addr_groups.append(ag)
-            else:
-                self._addr_groups[-1].add_data_row(row)
+            #Walk through each line
+            for l in lines:
+                #Grab the row and convert it to an iHexRow
+                row = iHexRow().from_str(l)
+                if row.record_type == ROWTYPE_EXT_LIN_ADDR:
+                    ag = iHexAddrGroup(row)
+                    self._addr_groups.append(ag)
+                else:
+                    self._addr_groups[-1].add_data_row(row)
 
     def __str__(self):
         return ''.join([str(x) for x in self._addr_groups])
@@ -220,7 +221,7 @@ class iHex(object):
                 continue
 
             #Grab our working data chunk and adjust the remaining data accordingly
-            data = [ord(x) for x in bytestring[:16]]
+            data = [x for x in bytestring[:16]]
             bytestring = bytestring[16:]
 
             #Create our iHexRow data
@@ -248,8 +249,9 @@ class iHex(object):
         
 
     def load_bin(self, path, base_offset):
-        bindata = open(path, 'rb').read()
-        self._process_binary(bindata, base_offset)
+        with open(path, 'rb') as fd:
+            bindata = fd.read()
+            self._process_binary(bindata, base_offset)
 
 
     def save_bin(self, path):
